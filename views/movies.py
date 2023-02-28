@@ -21,6 +21,7 @@ class MovieSchema(Schema):
     genre_id = fields.Int()
     director_id = fields.Int()
 
+
 movie_schema = MovieSchema()
 movies_schema = MovieSchema(many=True)
 
@@ -33,13 +34,18 @@ class MoviesView(Resource):
     def get(self):
         director_id = request.args.get('director_id')
         genre_id = request.args.get('genre_id')
+
         try:
             if director_id and genre_id:
-                movies_by_filters = db.session.query(Movie).filter(Movie.director_id == director_id).filter(Movie.genre_id == genre_id).all()
+                movies_by_filters = db.session.query(Movie).filter(Movie.director_id == director_id).filter(
+                    Movie.genre_id == genre_id).all()
                 if movies_by_filters:
                     return movies_schema.dump(movies_by_filters), 200
                 return 'movies not found for this query'
-            return 'director_id or genre_id missing'
+            else:
+                movies_all = db.session.query(Movie)
+                return movies_schema.dump(movies_all), 200
+
         except Exception as e:
             return str(e), 404
 
@@ -65,7 +71,7 @@ class MovieView(Resource):
         movie_data = db.session.query(Movie).filter(Movie.id == uid).one()
         movie_data.title = data.get('title')
         movie_data.description = data.get('description')
-        movie_data.trailer =data.get('trailer')
+        movie_data.trailer = data.get('trailer')
         movie_data.year = data.get('year')
         movie_data.rating = data.get('rating')
         movie_data.genre_id = data.get('genre_id')
